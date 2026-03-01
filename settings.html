@@ -307,7 +307,6 @@ function apiGet(ep){
 }
 function apiPost(ep,data){
   return fetch(API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){return r.json()}).catch(function(e){console.error(e);return null});
-},body:JSON.stringify(data)}).then(function(r){return r.json()}).catch(function(e){console.error(e);return null});
 }
 
 var NAV=[
@@ -327,7 +326,7 @@ document.getElementById('navEmail').textContent=localStorage.getItem('managerEma
 var nh='';
 for(var i=0;i<NAV.length;i++){
   var n=NAV[i];var a=n.id==='settings';
-  nh+='<div class="nav-item'+(a?' active':'')+'" onclick="go(\''+n.file+'\')"><span class="nav-icon">'+n.icon+'</span><span>'+n.label+'</span>'+(a?'<span class="nav-active-dot"></span>':'')+'</div>';
+  nh+='<div class="nav-item'+(a?' active':'')+'" onclick="go(''+n.file+'')"><span class="nav-icon">'+n.icon+'</span><span>'+n.label+'</span>'+(a?'<span class="nav-active-dot"></span>':'')+'</div>';
 }
 document.getElementById('navLinks').innerHTML=nh;
 
@@ -337,11 +336,9 @@ function go(f){window.location.href=f}
 function logout(){sessionStorage.clear();window.location.href='pin-login.html'}
 (function tick(){var el=document.getElementById('topClock');if(el)el.textContent=new Date().toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});setTimeout(tick,1000)})();
 
-// Fill saved values
 document.getElementById('settEmail').value=localStorage.getItem('managerEmail')||'';
 document.getElementById('settGmail').value=localStorage.getItem('managerEmail')||'';
 
-// Check connection
 function checkConnection(){
   var el=document.getElementById('connStatus');
   el.innerHTML='<span class="status-dot" style="background:var(--busy)"></span> Connecting...';
@@ -358,10 +355,7 @@ function checkConnection(){
       el.innerHTML='<span class="status-dot" style="background:var(--closed)"></span> ❌ Error: '+e.message;
     });
 }
-  });
-}
 
-// Load branches
 function loadBranches(){
   apiGet('branches.php').then(function(data){
     if(!data)return;
@@ -369,7 +363,8 @@ function loadBranches(){
     for(var i=0;i<data.length;i++){
       var b=data[i];
       var tc=b.status==='open'?'tag-open':b.status==='busy'?'tag-busy':'tag-closed';
-      html+='<div class="branch-box"><div class="branch-row"><strong>'+b.name+'</strong><span class="tag '+tc+'">'+b.status+'</span></div>'
+      html+='<div class="branch-box" style="padding:14px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);margin-bottom:10px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><strong>'+b.name+'</strong><span class="tag '+tc+'">'+b.status+'</span></div>'
         +'<select class="input" style="margin-bottom:0" onchange="updateBranchStatus('+b.id+',this.value)">'
         +'<option value="open"'+(b.status==='open'?' selected':'')+'>Open</option>'
         +'<option value="busy"'+(b.status==='busy'?' selected':'')+'>Busy</option>'
@@ -380,18 +375,10 @@ function loadBranches(){
   });
 }
 
-function updateBranchStatus(id, status){
+function updateBranchStatus(id,status){
   apiPost('branches.php',{id:id,status:status}).then(function(res){
     if(res&&res.success)loadBranches();
   });
-}
-
-
-
-
-  localStorage.setItem('phoneIP',ip);
-    if(!USE_EMULATOR)API=PHONE_URL;
-  checkConnection();
 }
 
 function updatePin(){
