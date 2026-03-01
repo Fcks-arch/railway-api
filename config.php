@@ -1,8 +1,6 @@
 <?php
-// Use Railway internal variables (set via Variable References)
-// Falls back to hardcoded values if env vars not set
-define('DB_HOST', getenv('MYSQLHOST') ?: 'mysql.railway.internal');
-define('DB_PORT', getenv('MYSQLPORT') ?: '3306');
+define('DB_HOST', getenv('MYSQLHOST') ?: 'maglev.proxy.rlwy.net');
+define('DB_PORT', getenv('MYSQLPORT') ?: '28397');
 define('DB_USER', getenv('MYSQLUSER') ?: 'root');
 define('DB_PASS', getenv('MYSQLPASSWORD') ?: 'CTcegQuMqhmYOxwkjZpipMTsmKpIDDnh');
 define('DB_NAME', getenv('MYSQLDATABASE') ?: 'railway');
