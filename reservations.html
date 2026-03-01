@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservations</title>
+<style>
+:root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:rgba(255,255,255,0.07);--accent:#f97316;--accent2:#3b82f6;--accent3:#10b981;--accent4:#a855f7;--text:#f1f5f9;--muted:#64748b;--open:#10b981;--busy:#f59e0b;--closed:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.page{padding:20px 20px 80px;max-width:1200px;margin:0 auto}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700;margin-bottom:16px}
+.btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.2s}
+.btn-primary{background:var(--accent);color:white}.btn-primary:hover{background:#ea6c0a}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:rgba(239,68,68,0.15);color:var(--closed);border:1px solid rgba(239,68,68,0.3)}
+.btn-success{background:rgba(16,185,129,0.15);color:var(--open);border:1px solid rgba(16,185,129,0.3)}
+.input{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none}
+.input:focus{border-color:var(--accent)}
+select.input{cursor:pointer}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.tag-open,.tag-confirmed,.tag-instock{background:rgba(16,185,129,0.15);color:var(--open)}
+.tag-busy,.tag-pending,.tag-low,.tag-seated{background:rgba(245,158,11,0.15);color:var(--busy)}
+.tag-closed,.tag-cancelled,.tag-outofstock,.tag-absent{background:rgba(239,68,68,0.15);color:var(--closed)}
+.tag-info,.tag-off{background:rgba(59,130,246,0.15);color:var(--accent2)}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:12px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.stat-val{font-size:24px;font-weight:800}
+.stat-label{font-size:11px;color:var(--muted);margin-top:4px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:90%;max-width:440px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.topbar{position:sticky;top:0;display:flex;align-items:center;gap:12px;padding:14px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,0.07);z-index:100}
+.burger-btn{background:none;border:none;color:#f1f5f9;font-size:20px;cursor:pointer;padding:4px}
+.topbar-title{font-weight:700;font-size:16px;flex:1}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-clock{font-size:11px;color:#64748b}
+.notif-badge{position:relative;cursor:pointer;font-size:18px}
+.badge-count{position:absolute;top:-4px;right:-6px;background:#ef4444;color:white;font-size:9px;font-weight:700;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200}
+.nav-overlay.open{display:block}
+.nav-drawer{position:fixed;top:0;left:0;bottom:0;width:270px;background:#111827;border-right:1px solid rgba(255,255,255,0.07);z-index:300;transform:translateX(-100%);transition:transform 0.3s ease;display:flex;flex-direction:column;overflow-y:auto}
+.nav-drawer.open{transform:translateX(0)}
+.nav-header{padding:24px 20px 12px;position:relative}
+.nav-logo{font-weight:800;font-size:18px;color:#f97316}
+.nav-subtitle{font-size:11px;color:#64748b;margin-top:2px}
+.nav-email{font-size:11px;color:#94a3b8;padding:0 20px 12px}
+.nav-close{position:absolute;top:20px;right:16px;background:rgba(255,255,255,0.05);border:none;color:#64748b;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:12px}
+.nav-divider{height:1px;background:rgba(255,255,255,0.07);margin:4px 0}
+.nav-links{flex:1;padding:8px 12px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;color:#94a3b8;font-size:13px;margin-bottom:2px;transition:all 0.15s}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:#f1f5f9}
+.nav-item.active{background:rgba(249,115,22,0.12);color:#f97316;font-weight:600}
+.nav-icon{font-size:16px;width:22px;text-align:center}
+.nav-active-dot{width:6px;height:6px;background:#f97316;border-radius:50%;margin-left:auto}
+.nav-logout{padding:12px 20px;color:#ef4444!important}
+.fade-in{animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+.error-box{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:16px;color:var(--closed);font-size:13px;margin-bottom:16px}
+@media(max-width:768px){.grid-3,.grid-4{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="nav-overlay" id="navOverlay" onclick="closeNav()"></div>
+<div class="nav-drawer" id="navDrawer">
+  <div class="nav-header">
+    <div class="nav-logo">🍽 RestaurantOS</div>
+    <div class="nav-subtitle">Admin Panel</div>
+    <button class="nav-close" onclick="closeNav()">✕</button>
+  </div>
+  <div class="nav-email" id="navEmail"></div>
+  <div class="nav-divider"></div>
+  <nav class="nav-links" id="navLinks"></nav>
+  <div class="nav-divider"></div>
+  <div class="nav-item nav-logout" onclick="logout()"><span class="nav-icon">🚪</span><span>Logout</span></div>
+</div>
+<div class="topbar">
+  <button class="burger-btn" onclick="openNav()">☰</button>
+  <div class="topbar-title">Reservations</div>
+  <div class="topbar-right">
+    <span class="topbar-clock" id="topClock"></span>
+    <span class="notif-badge" onclick="go('notifications.html')">🔔<span class="badge-count" id="notifCount">0</span></span>
+  </div>
+</div>
+<div class="page fade-in">
+
+<div class="grid-4" id="resStats">
+  <div class="card" style="text-align:center"><div class="stat-val" id="statTotal" style="color:var(--accent2)">—</div><div class="stat-label">Today's Reservations</div></div>
+  <div class="card" style="text-align:center"><div class="stat-val" id="statConfirmed" style="color:var(--open)">—</div><div class="stat-label">Confirmed</div></div>
+  <div class="card" style="text-align:center"><div class="stat-val" id="statPending" style="color:var(--busy)">—</div><div class="stat-label">Pending</div></div>
+  <div class="card" style="text-align:center"><div class="stat-val" id="statCancelled" style="color:var(--closed)">—</div><div class="stat-label">Cancelled</div></div>
+</div>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div class="card-title" style="margin:0">All Reservations</div>
+    <button class="btn btn-primary" onclick="openModal()">+ New Reservation</button>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <input class="input" placeholder="Search by name..." id="srch" oninput="renderTable()" style="max-width:240px">
+    <select class="input" id="fBranch" onchange="renderTable()" style="max-width:160px">
+      <option value="">All Branches</option>
+    </select>
+    <select class="input" id="fStatus" onchange="renderTable()" style="max-width:150px">
+      <option value="">All Status</option>
+      <option>Pending</option><option>Confirmed</option><option>Seated</option><option>Cancelled</option>
+    </select>
+  </div>
+  <div id="resError"></div>
+  <div style="overflow-x:auto"><table>
+    <thead><tr><th>Guest</th><th>Branch</th><th>Date & Time</th><th>Guests</th><th>Table</th><th>Contact</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="resBody"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
+  </table></div>
+</div>
+<div class="modal-bg" id="resModal">
+  <div class="modal">
+    <div class="modal-title">New Reservation</div>
+    <div class="form-group"><label class="form-label">Guest Name</label><input class="input" id="mName" placeholder="Full name"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label class="form-label">Branch</label><select class="input" id="mBranch"></select></div>
+      <div class="form-group"><label class="form-label">Guests</label><input class="input" id="mGuests" type="number" min="1" value="2"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label class="form-label">Date</label><input class="input" id="mDate" type="date"></div>
+      <div class="form-group"><label class="form-label">Time</label><input class="input" id="mTime" type="time"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Contact</label><input class="input" id="mContact" placeholder="09XX XXX XXXX"></div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="input" id="mNotes" placeholder="Special requests..."></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRes()">Save</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+var API = 'https://railway-api-production-31fd.up.railway.app/';
+
+function apiGet(ep){
+  return fetch(API+ep).then(function(r){return r.json()}).catch(function(e){console.error(e);return null});
+}
+function apiPost(ep,data){
+  return fetch(API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){return r.json()}).catch(function(e){console.error(e);return null});
+}
+function apiPut(ep,data){ return apiPost(ep,data); }
+function apiDel(ep){
+  return fetch(API+ep,{method:'DELETE'}).then(function(r){return r.json()}).catch(function(e){console.error(e);return null});
+}).then(function(r){return r.json()}).catch(function(e){console.error(e);return null});
+}
+</script>
+
+<script>
+
+var NAV=[
+  {id:'dashboard',   icon:'🏠',label:'Dashboard',          file:'dashboard.html'},
+  {id:'reservations',icon:'📅',label:'Reservations',        file:'reservations.html'},
+  {id:'menu',        icon:'🍽',label:'Menu Management',     file:'menu.html'},
+  {id:'inventory',   icon:'📦',label:'Inventory',           file:'inventory.html'},
+  {id:'staff',       icon:'👥',label:'Staff Management',    file:'staff.html'},
+  {id:'billing',     icon:'💰',label:'Billing & Payments',  file:'billing.html'},
+  {id:'events',      icon:'🗓',label:'Event Scheduler',     file:'events.html'},
+  {id:'reports',     icon:'📊',label:'Reports & Analytics', file:'reports.html'},
+  {id:'feedback',    icon:'⭐',label:'Customer Feedback',   file:'feedback.html'},
+  {id:'notifications',icon:'🔔',label:'Notifications',      file:'notifications.html'},
+  {id:'settings',    icon:'⚙️',label:'Settings',            file:'settings.html'},
+];
+function buildNav(activeId){
+  document.getElementById('navEmail').textContent=localStorage.getItem('managerEmail')||'';
+  var html='';
+  for(var i=0;i<NAV.length;i++){
+    var n=NAV[i];
+    var a=n.id===activeId;
+    html+='<div class="nav-item'+(a?' active':'')+'" onclick="go(\''+n.file+'\')"><span class="nav-icon">'+n.icon+'</span><span>'+n.label+'</span>'+(a?'<span class="nav-active-dot"></span>':'')+'</div>';
+  }
+  document.getElementById('navLinks').innerHTML=html;
+}
+function openNav(){document.getElementById('navDrawer').classList.add('open');document.getElementById('navOverlay').classList.add('open')}
+function closeNav(){document.getElementById('navDrawer').classList.remove('open');document.getElementById('navOverlay').classList.remove('open')}
+function go(f){window.location.href=f}
+function logout(){sessionStorage.clear();window.location.href='pin-login.html'}
+function initClock(){
+  (function tick(){
+    var el=document.getElementById('topClock');
+    if(el)el.textContent=new Date().toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    setTimeout(tick,1000);
+  })();
+}
+function authGuard(){
+  if(localStorage.getItem('isLoggedIn')!=='true')window.location.href='index.html';
+  if(sessionStorage.getItem('pinVerified')!=='true')window.location.href='pin-login.html';
+}
+function loadNotifCount(){
+  apiGet('notifications.php').then(function(data){
+    if(!data)return;
+    var unread=data.filter(function(n){return n.is_read==='0'||n.is_read===0}).length;
+    var el=document.getElementById('notifCount');
+    if(el)el.textContent=unread;
+  });
+}
+
+authGuard();
+buildNav('reservations');
+initClock();
+loadNotifCount();
+
+var allRes = [];
+var branches = [];
+
+function tagClass(s){
+  if(s==='Confirmed')return 'tag-confirmed';
+  if(s==='Pending')return 'tag-pending';
+  if(s==='Seated')return 'tag-seated';
+  return 'tag-cancelled';
+}
+
+function loadData(){
+  apiGet('branches.php').then(function(data){
+    if(!data)return;
+    branches=data;
+    var bHTML='<option value="">All Branches</option>';
+    var mHTML='';
+    for(var i=0;i<data.length;i++){
+      bHTML+='<option value="'+data[i].id+'">'+data[i].name+'</option>';
+      mHTML+='<option value="'+data[i].id+'">'+data[i].name+'</option>';
+    }
+    document.getElementById('fBranch').innerHTML=bHTML;
+    document.getElementById('mBranch').innerHTML=mHTML;
+  });
+
+  apiGet('reservations.php').then(function(data){
+    if(!data){
+      document.getElementById('resError').innerHTML='<div class="error-box">Could not load reservations. Check your API connection.</div>';
+      document.getElementById('resBody').innerHTML='<tr><td colspan="8" class="loading">No data</td></tr>';
+      return;
+    }
+    allRes=data;
+    updateStats();
+    renderTable();
+  });
+}
+
+function updateStats(){
+  var today=new Date().toISOString().split('T')[0];
+  var todayRes=allRes.filter(function(r){return r.res_date===today});
+  document.getElementById('statTotal').textContent=todayRes.length;
+  document.getElementById('statConfirmed').textContent=todayRes.filter(function(r){return r.status==='Confirmed'}).length;
+  document.getElementById('statPending').textContent=todayRes.filter(function(r){return r.status==='Pending'}).length;
+  document.getElementById('statCancelled').textContent=todayRes.filter(function(r){return r.status==='Cancelled'}).length;
+}
+
+function renderTable(){
+  var s=document.getElementById('srch').value.toLowerCase();
+  var b=document.getElementById('fBranch').value;
+  var st=document.getElementById('fStatus').value;
+  var filtered=allRes.filter(function(r){
+    return (!s||r.guest_name.toLowerCase().includes(s)||(r.contact||'').includes(s))
+      &&(!b||r.branch_id==b)
+      &&(!st||r.status===st);
+  });
+  if(filtered.length===0){
+    document.getElementById('resBody').innerHTML='<tr><td colspan="8" class="loading">No reservations found</td></tr>';
+    return;
+  }
+  var html='';
+  for(var i=0;i<filtered.length;i++){
+    var r=filtered[i];
+    var t=r.res_time?r.res_time.slice(0,5):'';
+    html+='<tr>'
+      +'<td><strong>'+r.guest_name+'</strong>'+(r.notes?'<br><span style="font-size:11px;color:var(--muted)">'+r.notes+'</span>':'')+'</td>'
+      +'<td>'+(r.branch_name||'—')+'</td>'
+      +'<td>'+r.res_date+'<br><span style="color:var(--muted);font-size:12px">'+t+'</span></td>'
+      +'<td style="text-align:center">'+r.guests+'</td>'
+      +'<td>'+(r.table_num||'—')+'</td>'
+      +'<td style="font-size:12px">'+(r.contact||'—')+'</td>'
+      +'<td><span class="tag '+tagClass(r.status)+'">'+r.status+'</span></td>'
+      +'<td><div style="display:flex;gap:6px">'
+      +(r.status==='Pending'?'<button class="btn btn-success" style="padding:5px 10px;font-size:11px" onclick="updateStatus('+r.id+',\'Confirmed\')">✓</button>':'')
+      +(r.status!=='Cancelled'?'<button class="btn btn-danger" style="padding:5px 10px;font-size:11px" onclick="updateStatus('+r.id+',\'Cancelled\')">✕</button>':'')
+      +'</div></td></tr>';
+  }
+  document.getElementById('resBody').innerHTML=html;
+}
+
+function updateStatus(id, status){
+  apiPost('reservations.php',{id:id,status:status}).then(function(){
+    for(var i=0;i<allRes.length;i++){if(allRes[i].id==id){allRes[i].status=status;break;}}
+    updateStats();renderTable();
+  });
+}
+
+function openModal(){
+  document.getElementById('mDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('resModal').classList.add('open');
+}
+function closeModal(){document.getElementById('resModal').classList.remove('open')}
+
+function saveRes(){
+  var name=document.getElementById('mName').value.trim();
+  if(!name){alert('Please enter guest name');return;}
+  var data={
+    guest_name:name,
+    branch_id:document.getElementById('mBranch').value,
+    res_date:document.getElementById('mDate').value,
+    res_time:document.getElementById('mTime').value,
+    guests:document.getElementById('mGuests').value,
+    table_num:'T-'+Math.floor(Math.random()*10+1),
+    contact:document.getElementById('mContact').value,
+    notes:document.getElementById('mNotes').value,
+    status:'Pending'
+  };
+  apiPost('reservations.php',data).then(function(res){
+    if(res&&res.success){closeModal();loadData();}
+    else alert('Failed to save. Check connection.');
+  });
+}
+
+loadData();
+
+</script>
+</body>
+</html>

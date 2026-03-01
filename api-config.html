@@ -1,0 +1,38 @@
+<!--
+  HOW TO USE:
+  - Testing on EMULATOR?  → keep EMULATOR_URL as is
+  - Testing on REAL PHONE? → change PHONE_URL to your PC's actual WiFi IP
+    (Find it: open CMD → type "ipconfig" → look for IPv4 Address e.g. 192.168.1.5)
+  - Set USE_EMULATOR to true if on emulator, false if on real phone
+-->
+<script>
+  var USE_EMULATOR = false; // ← change to false when using real phone
+
+  var EMULATOR_URL = 'http://10.0.2.2/restaurant-api/api/';
+  var PHONE_URL    = 'http://192.168.1.5/restaurant-api/api/'; // ← replace with your PC's IP
+
+  var API = USE_EMULATOR ? EMULATOR_URL : PHONE_URL;
+
+  // Helper: fetch from API
+  function apiGet(endpoint) {
+    return fetch(API + endpoint)
+      .then(function(r) { return r.json(); })
+      .catch(function(e) { console.error('GET error:', e); return null; });
+  }
+
+  function apiPost(endpoint, data) {
+    return fetch(API + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    .then(function(r) { return r.json(); })
+    .catch(function(e) { console.error('POST error:', e); return null; });
+  }
+
+  function apiDelete(endpoint) {
+    return fetch(API + endpoint, { method: 'DELETE' })
+      .then(function(r) { return r.json(); })
+      .catch(function(e) { console.error('DELETE error:', e); return null; });
+  }
+</script>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings</title>
+<style>
+:root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:rgba(255,255,255,0.07);--accent:#f97316;--text:#f1f5f9;--muted:#64748b;--open:#10b981;--closed:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.page{padding:20px 20px 80px;max-width:1200px;margin:0 auto}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700;margin-bottom:16px}
+.btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.2s}
+.btn-primary{background:var(--accent);color:white}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.input{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;margin-bottom:10px}
+.input:focus{border-color:var(--accent)}
+.form-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.tag-open{background:rgba(16,185,129,0.15);color:var(--open)}
+.tag-closed{background:rgba(239,68,68,0.15);color:var(--closed)}
+.branch-box{padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);margin-bottom:10px}
+.branch-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hours-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.hours-label{min-width:80px;font-size:13px}
+.hours-input{max-width:90px;font-size:12px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);outline:none}
+.sep{color:var(--muted);font-size:12px}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.api-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+.api-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.topbar{position:sticky;top:0;display:flex;align-items:center;gap:12px;padding:14px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,0.07);z-index:100}
+.burger-btn{background:none;border:none;color:#f1f5f9;font-size:20px;cursor:pointer;padding:4px}
+.topbar-title{font-weight:700;font-size:16px;flex:1}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-clock{font-size:11px;color:#64748b}
+.notif-badge{position:relative;cursor:pointer;font-size:18px}
+.badge-count{position:absolute;top:-4px;right:-6px;background:#ef4444;color:white;font-size:9px;font-weight:700;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200}
+.nav-overlay.open{display:block}
+.nav-drawer{position:fixed;top:0;left:0;bottom:0;width:270px;background:#111827;border-right:1px solid rgba(255,255,255,0.07);z-index:300;transform:translateX(-100%);transition:transform 0.3s ease;display:flex;flex-direction:column;overflow-y:auto}
+.nav-drawer.open{transform:translateX(0)}
+.nav-header{padding:24px 20px 12px;position:relative}
+.nav-logo{font-weight:800;font-size:18px;color:#f97316}
+.nav-subtitle{font-size:11px;color:#64748b;margin-top:2px}
+.nav-email{font-size:11px;color:#94a3b8;padding:0 20px 12px}
+.nav-close{position:absolute;top:20px;right:16px;background:rgba(255,255,255,0.05);border:none;color:#64748b;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:12px}
+.nav-divider{height:1px;background:rgba(255,255,255,0.07);margin:4px 0}
+.nav-links{flex:1;padding:8px 12px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;color:#94a3b8;font-size:13px;margin-bottom:2px;transition:all 0.15s}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:#f1f5f9}
+.nav-item.active{background:rgba(249,115,22,0.12);color:#f97316;font-weight:600}
+.nav-icon{font-size:16px;width:22px;text-align:center}
+.nav-active-dot{width:6px;height:6px;background:#f97316;border-radius:50%;margin-left:auto}
+.nav-logout{padding:12px 20px;color:#ef4444!important}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.fade-in{animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="nav-overlay" id="navOverlay" onclick="closeNav()"></div>
+<div class="nav-drawer" id="navDrawer">
+  <div class="nav-header">
+    <div class="nav-logo">🍽 RestaurantOS</div>
+    <div class="nav-subtitle">Admin Panel</div>
+    <button class="nav-close" onclick="closeNav()">✕</button>
+  </div>
+  <div class="nav-email" id="navEmail"></div>
+  <div class="nav-divider"></div>
+  <nav class="nav-links" id="navLinks"></nav>
+  <div class="nav-divider"></div>
+  <div class="nav-item nav-logout" onclick="logout()"><span class="nav-icon">🚪</span><span>Logout</span></div>
+</div>
+
+<div class="topbar">
+  <button class="burger-btn" onclick="openNav()">☰</button>
+  <div class="topbar-title">Settings</div>
+  <div class="topbar-right">
+    <span class="topbar-clock" id="topClock"></span>
+    <span class="notif-badge" onclick="go('notifications.html')">🔔<span class="badge-count" id="notifCount">0</span></span>
+  </div>
+</div>
+
+<div class="page fade-in">
+
+  <!-- API CONNECTION -->
+  <div class="card">
+    <div class="card-title">🔌 API Connection</div>
+    <div class="api-box">
+      <div class="api-label">Connection Status</div>
+      <div id="connStatus" style="font-size:13px;color:var(--muted)">Checking...</div>
+    </div>
+    <div class="form-label">Device Type</div>
+    <select class="input" id="deviceType" onchange="switchDevice()" style="margin-bottom:14px">
+      <option value="phone">Real Phone (WiFi)</option>
+      <option value="emulator">Emulator</option>
+    </select>
+    <div class="form-label">Your PC's WiFi IP Address</div>
+    <input class="input" id="phoneIP" placeholder="e.g. 192.168.8.42">
+    <button class="btn btn-primary" onclick="saveIP()">Save &amp; Test Connection</button>
+  </div>
+
+  <div class="grid-2">
+    <!-- RESTAURANT INFO -->
+    <div class="card">
+      <div class="card-title">🏢 Restaurant Info</div>
+      <label class="form-label">Manager Email</label>
+      <input class="input" id="settEmail">
+      <label class="form-label">Restaurant Name</label>
+      <input class="input" id="settName" value="RestaurantOS">
+      <label class="form-label">Contact Number</label>
+      <input class="input" id="settContact" value="+63 917 123 4567">
+      <button class="btn btn-primary" onclick="alert('Settings saved!')">Save Changes</button>
+    </div>
+
+    <!-- BRANCH INFO -->
+    <div class="card">
+      <div class="card-title">📍 Branch Status</div>
+      <div id="branchBoxes"><div style="color:var(--muted);font-size:13px">Loading branches...</div></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- OPERATING HOURS -->
+    <div class="card">
+      <div class="card-title">⏰ Operating Hours</div>
+      <div class="hours-row"><span class="hours-label">Tagudin</span><input class="hours-input" value="6:00 AM"><span class="sep">to</span><input class="hours-input" value="10:00 PM"></div>
+      <div class="hours-row"><span class="hours-label">Candon</span><input class="hours-input" value="6:00 AM"><span class="sep">to</span><input class="hours-input" value="10:00 PM"></div>
+      <div class="hours-row"><span class="hours-label">Servantes</span><input class="hours-input" value="7:00 AM"><span class="sep">to</span><input class="hours-input" value="9:00 PM"></div>
+      <div class="hours-row"><span class="hours-label">Suyo</span><input class="hours-input" value="7:00 AM"><span class="sep">to</span><input class="hours-input" value="9:00 PM"></div>
+      <button class="btn btn-primary" onclick="alert('Hours saved!')">Save Hours</button>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="card">
+      <div class="card-title">🔒 Security</div>
+      <label class="form-label">Current PIN</label>
+      <input class="input" type="password" placeholder="Enter current PIN" maxlength="4">
+      <label class="form-label">New PIN</label>
+      <input class="input" id="newPin" type="password" placeholder="Enter new PIN" maxlength="4">
+      <label class="form-label">Confirm New PIN</label>
+      <input class="input" id="confirmPin" type="password" placeholder="Confirm new PIN" maxlength="4">
+      <button class="btn btn-primary" onclick="updatePin()">Update PIN</button>
+      <div class="divider"></div>
+      <label class="form-label">Authorized Gmail</label>
+      <input class="input" id="settGmail">
+      <button class="btn btn-secondary" onclick="updateGmail()">Update Gmail</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+if(localStorage.getItem('isLoggedIn')!=='true')window.location.href='index.html';
+if(sessionStorage.getItem('pinVerified')!=='true')window.location.href='pin-login.html';
+
+var API = 'https://railway-api-production-31fd.up.railway.app/';
+
+function apiGet(ep){
+  return fetch(API+ep).then(function(r){return r.json()}).catch(function(e){console.error(e);return null});
+}
+function apiPost(ep,data){
+  return fetch(API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){return r.json()}).catch(function(e){console.error(e);return null});
+},body:JSON.stringify(data)}).then(function(r){return r.json()}).catch(function(e){console.error(e);return null});
+}
+
+var NAV=[
+  {id:'dashboard',   icon:'🏠',label:'Dashboard',          file:'dashboard.html'},
+  {id:'reservations',icon:'📅',label:'Reservations',        file:'reservations.html'},
+  {id:'menu',        icon:'🍽',label:'Menu Management',     file:'menu.html'},
+  {id:'inventory',   icon:'📦',label:'Inventory',           file:'inventory.html'},
+  {id:'staff',       icon:'👥',label:'Staff Management',    file:'staff.html'},
+  {id:'billing',     icon:'💰',label:'Billing & Payments',  file:'billing.html'},
+  {id:'events',      icon:'🗓',label:'Event Scheduler',     file:'events.html'},
+  {id:'reports',     icon:'📊',label:'Reports & Analytics', file:'reports.html'},
+  {id:'feedback',    icon:'⭐',label:'Customer Feedback',   file:'feedback.html'},
+  {id:'notifications',icon:'🔔',label:'Notifications',      file:'notifications.html'},
+  {id:'settings',    icon:'⚙️',label:'Settings',            file:'settings.html'},
+];
+document.getElementById('navEmail').textContent=localStorage.getItem('managerEmail')||'';
+var nh='';
+for(var i=0;i<NAV.length;i++){
+  var n=NAV[i];var a=n.id==='settings';
+  nh+='<div class="nav-item'+(a?' active':'')+'" onclick="go(\''+n.file+'\')"><span class="nav-icon">'+n.icon+'</span><span>'+n.label+'</span>'+(a?'<span class="nav-active-dot"></span>':'')+'</div>';
+}
+document.getElementById('navLinks').innerHTML=nh;
+
+function openNav(){document.getElementById('navDrawer').classList.add('open');document.getElementById('navOverlay').classList.add('open')}
+function closeNav(){document.getElementById('navDrawer').classList.remove('open');document.getElementById('navOverlay').classList.remove('open')}
+function go(f){window.location.href=f}
+function logout(){sessionStorage.clear();window.location.href='pin-login.html'}
+(function tick(){var el=document.getElementById('topClock');if(el)el.textContent=new Date().toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});setTimeout(tick,1000)})();
+
+// Fill saved values
+document.getElementById('settEmail').value=localStorage.getItem('managerEmail')||'';
+document.getElementById('settGmail').value=localStorage.getItem('managerEmail')||'';
+document.getElementById('phoneIP').value=savedIP;
+document.getElementById('deviceType').value=USE_EMULATOR?'emulator':'phone';
+
+// Check connection
+function checkConnection(){
+  var el=document.getElementById('connStatus');
+  el.innerHTML='<span class="status-dot" style="background:var(--busy)"></span> Connecting to Railway...';
+  apiGet('branches.php').then(function(data){
+    if(data && data.length){
+      el.innerHTML='<span class="status-dot" style="background:var(--open)"></span> ✅ Connected — database is live!';
+      loadBranches();
+    } else {
+      el.innerHTML='<span class="status-dot" style="background:var(--closed)"></span> ❌ Cannot connect. Check XAMPP is running.';
+    }
+  });
+}
+
+// Load branches
+function loadBranches(){
+  apiGet('branches.php').then(function(data){
+    if(!data)return;
+    var html='';
+    for(var i=0;i<data.length;i++){
+      var b=data[i];
+      var tc=b.status==='open'?'tag-open':b.status==='busy'?'tag-busy':'tag-closed';
+      html+='<div class="branch-box"><div class="branch-row"><strong>'+b.name+'</strong><span class="tag '+tc+'">'+b.status+'</span></div>'
+        +'<select class="input" style="margin-bottom:0" onchange="updateBranchStatus('+b.id+',this.value)">'
+        +'<option value="open"'+(b.status==='open'?' selected':'')+'>Open</option>'
+        +'<option value="busy"'+(b.status==='busy'?' selected':'')+'>Busy</option>'
+        +'<option value="closed"'+(b.status==='closed'?' selected':'')+'>Closed</option>'
+        +'</select></div>';
+    }
+    document.getElementById('branchBoxes').innerHTML=html;
+  });
+}
+
+function updateBranchStatus(id, status){
+  apiPost('branches.php',{id:id,status:status}).then(function(res){
+    if(res&&res.success)loadBranches();
+  });
+}
+
+function switchDevice(){
+  var val=document.getElementById('deviceType').value;
+  USE_EMULATOR=val==='emulator';
+  localStorage.setItem('useEmulator',USE_EMULATOR);
+  API=USE_EMULATOR?EMULATOR_URL:PHONE_URL;
+  checkConnection();
+}
+
+function saveIP(){
+  var ip=document.getElementById('phoneIP').value.trim();
+  if(!ip){alert('Enter an IP address');return;}
+  localStorage.setItem('phoneIP',ip);
+  PHONE_URL='http://'+ip+'/restaurant-api/api/';
+  if(!USE_EMULATOR)API=PHONE_URL;
+  checkConnection();
+}
+
+function updatePin(){
+  var np=document.getElementById('newPin').value;
+  var cp=document.getElementById('confirmPin').value;
+  if(np.length!==4){alert('PIN must be 4 digits');return;}
+  if(np!==cp){alert('PINs do not match');return;}
+  localStorage.setItem('managerPin',np);
+  apiPost('settings.php',{update_pin:true,pin:np}).then(function(){alert('PIN updated!')});
+}
+
+function updateGmail(){
+  var g=document.getElementById('settGmail').value.trim();
+  if(!g){alert('Enter a Gmail address');return;}
+  localStorage.setItem('managerEmail',g);
+  apiPost('settings.php',{update_gmail:true,email:g}).then(function(){alert('Gmail updated!')});
+}
+
+checkConnection();
+loadBranches();
+</script>
+</body>
+</html>
