@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+          --bg: #0a0e1a;
+          --surface: #111827;
+          --surface2: #1a2235;
+          --border: rgba(255,255,255,0.07);
+          --accent: #f97316;
+          --accent2: #3b82f6;
+          --accent3: #10b981;
+          --accent4: #a855f7;
+          --text: #f1f5f9;
+          --muted: #64748b;
+          --open: #10b981;
+          --busy: #f59e0b;
+          --closed: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+          font-family: system-ui, sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100vh;
+          overflow-x: hidden;
+        }
+
+        /* HEADER */
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 24px;
+          background: var(--surface);
+          border-bottom: 1px solid var(--border);
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .logo {
+          font-family: system-ui, sans-serif;
+          font-weight: 800;
+          font-size: 18px;
+          color: var(--accent);
+          letter-spacing: -0.5px;
+        }
+
+        .header-title {
+          font-family: system-ui, sans-serif;
+          font-size: 13px;
+          color: var(--muted);
+          font-weight: 400;
+        }
+
+        .header-right {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .time-display {
+          font-family: system-ui, sans-serif;
+          font-size: 13px;
+          color: var(--muted);
+        }
+
+        .logout-btn {
+          padding: 8px 16px;
+          background: rgba(249,115,22,0.15);
+          border: 1px solid rgba(249,115,22,0.3);
+          color: var(--accent);
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 13px;
+          font-family: system-ui, sans-serif;
+          transition: all 0.2s;
+        }
+
+        .logout-btn:hover { background: rgba(249,115,22,0.25); }
+
+        /* MAIN LAYOUT */
+        .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+
+        /* SECTION TITLE */
+        .section-title {
+          font-family: system-ui, sans-serif;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          color: var(--muted);
+          margin-bottom: 12px;
+        }
+
+        /* BRANCH STATUS CARDS */
+        .branches-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        .branch-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 16px;
+          cursor: pointer;
+          transition: all 0.2s;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .branch-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 3px;
+          border-radius: 14px 14px 0 0;
+        }
+
+        .branch-card.b0::before { background: var(--accent); }
+        .branch-card.b1::before { background: var(--accent2); }
+        .branch-card.b2::before { background: var(--accent3); }
+        .branch-card.b3::before { background: var(--accent4); }
+
+        .branch-card.active {
+          border-color: rgba(249,115,22,0.4);
+          background: var(--surface2);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .branch-card.active.b1 { border-color: rgba(59,130,246,0.4); }
+        .branch-card.active.b2 { border-color: rgba(16,185,129,0.4); }
+        .branch-card.active.b3 { border-color: rgba(168,85,247,0.4); }
+
+        .branch-name {
+          font-family: system-ui, sans-serif;
+          font-weight: 700;
+          font-size: 15px;
+          margin-bottom: 4px;
+        }
+
+        .branch-location {
+          font-size: 11px;
+          color: var(--muted);
+          margin-bottom: 12px;
+        }
+
+        .branch-status {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 3px 10px;
+          border-radius: 20px;
+          font-size: 11px;
+          font-weight: 500;
+          margin-bottom: 12px;
+        }
+
+        .status-dot {
+          width: 6px; height: 6px;
+          border-radius: 50%;
+        }
+
+        .status-open { background: rgba(16,185,129,0.15); color: var(--open); }
+        .status-open .status-dot { background: var(--open); }
+        .status-busy { background: rgba(245,158,11,0.15); color: var(--busy); }
+        .status-busy .status-dot { background: var(--busy); animation: pulse 1.5s infinite; }
+        .status-closed { background: rgba(239,68,68,0.15); color: var(--closed); }
+        .status-closed .status-dot { background: var(--closed); }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+
+        .branch-revenue {
+          font-family: system-ui, sans-serif;
+          font-size: 20px;
+          font-weight: 800;
+          margin-bottom: 2px;
+        }
+
+        .branch-revenue-label { font-size: 11px; color: var(--muted); }
+
+        .branch-change {
+          font-size: 11px;
+          margin-top: 4px;
+        }
+
+        .up { color: var(--accent3); }
+        .down { color: var(--closed); }
+
+        /* STATUS EDITOR */
+        .status-controls {
+          display: flex;
+          gap: 6px;
+          margin-top: 10px;
+          flex-wrap: wrap;
+        }
+
+        .status-btn {
+          padding: 4px 10px;
+          border-radius: 6px;
+          font-size: 10px;
+          cursor: pointer;
+          border: 1px solid var(--border);
+          background: var(--surface2);
+          color: var(--muted);
+          transition: all 0.2s;
+          font-family: system-ui, sans-serif;
+        }
+
+        .status-btn:hover { color: var(--text); }
+        .status-btn.s-open:hover, .status-btn.s-open.active-s { background: rgba(16,185,129,0.2); border-color: var(--open); color: var(--open); }
+        .status-btn.s-busy:hover, .status-btn.s-busy.active-s { background: rgba(245,158,11,0.2); border-color: var(--busy); color: var(--busy); }
+        .status-btn.s-closed:hover, .status-btn.s-closed.active-s { background: rgba(239,68,68,0.2); border-color: var(--closed); color: var(--closed); }
+
+        /* QUICK COMPARISON */
+        .comparison-row {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        .metric-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 16px;
+        }
+
+        .metric-label {
+          font-size: 11px;
+          color: var(--muted);
+          margin-bottom: 8px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        .metric-value {
+          font-family: system-ui, sans-serif;
+          font-size: 22px;
+          font-weight: 800;
+          margin-bottom: 4px;
+        }
+
+        .metric-sub { font-size: 12px; color: var(--muted); }
+
+        /* CHARTS ROW */
+        .charts-row {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .chart-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 20px;
+        }
+
+        .chart-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+
+        .chart-title {
+          font-family: system-ui, sans-serif;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .chart-tabs {
+          display: flex;
+          gap: 4px;
+          background: var(--surface2);
+          padding: 3px;
+          border-radius: 8px;
+        }
+
+        .chart-tab {
+          padding: 5px 12px;
+          border-radius: 6px;
+          font-size: 11px;
+          cursor: pointer;
+          color: var(--muted);
+          transition: all 0.2s;
+          border: none;
+          background: none;
+          font-family: system-ui, sans-serif;
+        }
+
+        .chart-tab.active {
+          background: var(--accent);
+          color: white;
+        }
+
+        canvas { max-height: 220px; }
+
+        /* BOTTOM ROW */
+        .bottom-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        /* TOP SELLING */
+        .item-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 0;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .item-row:last-child { border-bottom: none; }
+
+        .item-rank {
+          font-family: system-ui, sans-serif;
+          font-size: 11px;
+          color: var(--muted);
+          width: 20px;
+        }
+
+        .item-name { font-size: 13px; flex: 1; padding: 0 10px; }
+
+        .item-bar-wrap {
+          width: 80px;
+          height: 4px;
+          background: var(--surface2);
+          border-radius: 2px;
+          margin-right: 10px;
+        }
+
+        .item-bar {
+          height: 100%;
+          border-radius: 2px;
+          background: var(--accent);
+        }
+
+        .item-count { font-size: 12px; color: var(--muted); min-width: 40px; text-align: right; }
+
+        /* STAFF */
+        .staff-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 0;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .staff-row:last-child { border-bottom: none; }
+
+        .staff-avatar {
+          width: 32px; height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 13px;
+          font-weight: 700;
+          font-family: system-ui, sans-serif;
+          flex-shrink: 0;
+        }
+
+        .staff-info { flex: 1; }
+        .staff-name { font-size: 13px; font-weight: 500; }
+        .staff-role { font-size: 11px; color: var(--muted); }
+        .staff-status { font-size: 11px; }
+
+        /* TRANSACTIONS */
+        .txn-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 9px 0;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .txn-row:last-child { border-bottom: none; }
+        .txn-id { font-size: 11px; color: var(--muted); }
+        .txn-item { font-size: 13px; }
+        .txn-time { font-size: 11px; color: var(--muted); }
+        .txn-amount { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; color: var(--accent3); }
+
+        /* ALERTS */
+        .alert-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          background: var(--surface2);
+          border-radius: 8px;
+          margin-bottom: 8px;
+          font-size: 12px;
+        }
+
+        .alert-icon { font-size: 16px; }
+        .alert-text { flex: 1; }
+        .alert-branch { font-size: 10px; color: var(--muted); }
+
+        /* PEAK HOURS + GOAL */
+        .goal-section { margin-top: 16px; }
+        .goal-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+        .goal-bar { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
+        .goal-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+
+        /* WEATHER */
+        .weather-card {
+          background: linear-gradient(135deg, #1a2235, #0d1b30);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .weather-icon { font-size: 40px; }
+        .weather-temp { font-family: system-ui, sans-serif; font-size: 32px; font-weight: 800; }
+        .weather-desc { font-size: 13px; color: var(--muted); }
+        .weather-loc { font-size: 11px; color: var(--accent); margin-bottom: 2px; }
+        .weather-extra { display: flex; gap: 16px; margin-left: auto; }
+        .weather-extra-item { text-align: center; }
+        .weather-extra-val { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; }
+        .weather-extra-label { font-size: 10px; color: var(--muted); }
+
+        /* BRANCH DETAIL VIEW */
+        .detail-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+        }
+
+        .detail-title {
+          font-family: system-ui, sans-serif;
+          font-size: 22px;
+          font-weight: 800;
+        }
+
+        .branch-badge {
+          padding: 4px 14px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .b0-badge { background: rgba(249,115,22,0.15); color: var(--accent); }
+        .b1-badge { background: rgba(59,130,246,0.15); color: var(--accent2); }
+        .b2-badge { background: rgba(16,185,129,0.15); color: var(--accent3); }
+        .b3-badge { background: rgba(168,85,247,0.15); color: var(--accent4); }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+          .branches-grid, .comparison-row { grid-template-columns: repeat(2, 1fr); }
+          .charts-row, .bottom-row { grid-template-columns: 1fr; }
+          .main { padding: 12px; }
+        }
+
+        .fade-in { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* CUSTOMERS CARD */
+        .customers-bar {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        .customers-bar-label { font-size: 12px; min-width: 70px; color: var(--muted); }
+        .customers-bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; }
+        .customers-bar-fill { height: 100%; border-radius: 3px; }
+        .customers-bar-val { font-size: 12px; font-family: system-ui, sans-serif; font-weight: 700; min-width: 36px; text-align: right; }
+
+        .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+      /* ── SIDE NAV ── */
+      .nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;backdrop-filter:blur(2px)}
+      .nav-overlay.open{display:block}
+      .nav-drawer{position:fixed;top:0;left:0;bottom:0;width:270px;background:#111827;border-right:1px solid rgba(255,255,255,0.07);z-index:300;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto}
+      .nav-drawer.open{transform:translateX(0)}
+      .nav-header-d{padding:24px 20px 12px;position:relative}
+      .nav-logo-d{font-family:system-ui,sans-serif;font-weight:800;font-size:18px;color:#f97316}
+      .nav-subtitle-d{font-size:11px;color:#64748b;margin-top:2px}
+      .nav-email-d{font-size:11px;color:#94a3b8;padding:0 20px 12px}
+      .nav-close-d{position:absolute;top:20px;right:16px;background:rgba(255,255,255,0.05);border:none;color:#64748b;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:12px}
+      .nav-divider-d{height:1px;background:rgba(255,255,255,0.07);margin:4px 0}
+      .nav-links-d{flex:1;padding:8px 12px}
+      .nav-item-d{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;color:#94a3b8;font-size:13px;margin-bottom:2px;transition:all 0.15s;text-decoration:none;font-family:system-ui,sans-serif}
+      .nav-item-d:hover{background:rgba(255,255,255,0.05);color:#f1f5f9}
+      .nav-item-d.active{background:rgba(249,115,22,0.12);color:#f97316;font-weight:600}
+      .nav-icon-d{font-size:16px;width:22px;text-align:center}
+      .nav-active-dot-d{width:6px;height:6px;background:#f97316;border-radius:50%;margin-left:auto}
+      .nav-logout-d{padding:12px 20px;color:#ef4444!important}
+      .nav-logout-d:hover{background:rgba(239,68,68,0.1)!important}
+      .burger-btn{background:none;border:none;color:#f1f5f9;font-size:22px;cursor:pointer;padding:4px;line-height:1}
+    </style>
+</head>
+<body>
+
+<!-- SIDE NAV -->
+<div class="nav-overlay" id="navOverlay" onclick="closeNav()"></div>
+<div class="nav-drawer" id="navDrawer">
+    <div class="nav-header-d">
+        <div class="nav-logo-d">🍽 RestaurantOS</div>
+        <div class="nav-subtitle-d">Admin Panel</div>
+        <button class="nav-close-d" onclick="closeNav()">✕</button>
+    </div>
+    <div class="nav-email-d" id="navEmailD"></div>
+    <div class="nav-divider-d"></div>
+    <nav class="nav-links-d" id="navLinksD"></nav>
+    <div class="nav-divider-d"></div>
+    <div class="nav-item-d nav-logout-d" onclick="logout()"><span class="nav-icon-d">🚪</span><span>Logout</span></div>
+</div>
+
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-left">
+        <button class="burger-btn" onclick="openNav()">☰</button>
+        <div>
+            <div class="logo">🍽 RestaurantOS</div>
+            <div class="header-title">Admin Dashboard</div>
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="time-display" id="clock"></div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="main" id="mainContent"></div>
+
+<script>
+
+    const NAV_D=[
+      {id:'dashboard',icon:'🏠',label:'Dashboard',file:'dashboard.html'},
+      {id:'reservations',icon:'📅',label:'Reservations',file:'reservations.html'},
+      {id:'menu',icon:'🍽',label:'Menu Management',file:'menu.html'},
+      {id:'inventory',icon:'📦',label:'Inventory',file:'inventory.html'},
+      {id:'staff',icon:'👥',label:'Staff Management',file:'staff.html'},
+      {id:'billing',icon:'💰',label:'Billing & Payments',file:'billing.html'},
+      {id:'events',icon:'🗓',label:'Event Scheduler',file:'events.html'},
+      {id:'reports',icon:'📊',label:'Reports & Analytics',file:'reports.html'},
+      {id:'feedback',icon:'⭐',label:'Customer Feedback',file:'feedback.html'},
+      {id:'notifications',icon:'🔔',label:'Notifications',file:'notifications.html'},
+      {id:'settings',icon:'⚙️',label:'Settings',file:'settings.html'},
+    ];
+    document.getElementById('navEmailD').textContent=localStorage.getItem('managerEmail')||'';
+    document.getElementById('navLinksD').innerHTML=NAV_D.map(n=>`<div class="nav-item-d ${n.id==='dashboard'?'active':''}" onclick="window.location.href='${n.file}'"><span class="nav-icon-d">${n.icon}</span><span>${n.label}</span>${n.id==='dashboard'?'<span class="nav-active-dot-d"></span>':''}</div>`).join('');
+    function openNav(){document.getElementById('navDrawer').classList.add('open');document.getElementById('navOverlay').classList.add('open')}
+    function closeNav(){document.getElementById('navDrawer').classList.remove('open');document.getElementById('navOverlay').classList.remove('open')}
+
+    // ── AUTH GUARD ──
+    if (localStorage.getItem("isLoggedIn") !== "true") window.location.href = "index.html";
+    if (sessionStorage.getItem("pinVerified") !== "true") window.location.href = "pin-login.html";
+
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = "pin-login.html";
+    }
+
+    // ── CLOCK ──
+    function updateClock() {
+      const now = new Date();
+      document.getElementById("clock").textContent = now.toLocaleString('en-PH', {
+        weekday: 'short', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+    updateClock(); setInterval(updateClock, 1000);
+
+    // ── DATA ──
+    const branches = [
+      { id: 0, name: "Tagudin", region: "Ilocos Sur", color: "#f97316", status: "open" },
+      { id: 1, name: "Candon",  region: "Ilocos Sur", color: "#3b82f6", status: "busy" },
+      { id: 2, name: "Servantes", region: "Ilocos Sur", color: "#10b981", status: "open" },
+      { id: 3, name: "Suyo",   region: "Ilocos Sur", color: "#a855f7", status: "closed" }
+    ];
+
+    const weeklyData = {
+      0: [42000, 38000, 51000, 47000, 62000, 75000, 68000],
+      1: [35000, 41000, 44000, 39000, 55000, 61000, 57000],
+      2: [28000, 33000, 37000, 42000, 48000, 52000, 49000],
+      3: [18000, 22000, 25000, 21000, 30000, 35000, 31000]
+    };
+
+    const monthlyData = {
+      0: [320000, 415000, 380000, 450000, 510000, 490000],
+      1: [280000, 310000, 340000, 370000, 395000, 420000],
+      2: [210000, 250000, 270000, 305000, 330000, 355000],
+      3: [140000, 170000, 185000, 195000, 220000, 240000]
+    };
+
+    const branchDetails = {
+      0: {
+        orders: 284, customers: 431, avgOrder: 252, goal: 75,
+        topItems: [
+          { name: "Crispy Pata", count: 89 },
+          { name: "Lechon Kawali", count: 74 },
+          { name: "Sinigang na Baboy", count: 65 },
+          { name: "Kare-Kare", count: 52 },
+          { name: "Halo-Halo", count: 47 }
+        ],
+        staff: [
+          { name: "Maria Santos", role: "Head Chef", status: "on duty", color: "#f97316" },
+          { name: "Juan Dela Cruz", role: "Cashier", status: "on duty", color: "#3b82f6" },
+          { name: "Ana Reyes", role: "Waitstaff", status: "on duty", color: "#10b981" },
+          { name: "Pedro Lopez", role: "Waitstaff", status: "on break", color: "#a855f7" }
+        ],
+        transactions: [
+          { id: "#T1042", item: "Table 4 — 3 items", time: "2 mins ago", amount: "₱850" },
+          { id: "#T1041", item: "Table 2 — 5 items", time: "8 mins ago", amount: "₱1,240" },
+          { id: "#T1040", item: "Takeout — 2 items", time: "15 mins ago", amount: "₱430" },
+          { id: "#T1039", item: "Table 7 — 4 items", time: "22 mins ago", amount: "₱975" }
+        ],
+        peakHours: [10, 25, 40, 65, 85, 95, 80, 55, 70, 90, 75, 45],
+        alerts: [],
+        weather: { icon: "🌤", temp: "29°C", desc: "Partly Cloudy", wind: "12km/h", humidity: "74%" }
+      },
+      1: {
+        orders: 241, customers: 378, avgOrder: 238, goal: 62,
+        topItems: [
+          { name: "Bagnet", count: 95 },
+          { name: "Pinakbet", count: 71 },
+          { name: "Empanada", count: 64 },
+          { name: "Longganisa", count: 48 },
+          { name: "Dinuguan", count: 39 }
+        ],
+        staff: [
+          { name: "Rosa Fernandez", role: "Head Chef", status: "on duty", color: "#f97316" },
+          { name: "Carlo Bautista", role: "Cashier", status: "on duty", color: "#3b82f6" },
+          { name: "Lina Torres", role: "Waitstaff", status: "off duty", color: "#10b981" },
+          { name: "Mark Villanueva", role: "Waitstaff", status: "on duty", color: "#a855f7" }
+        ],
+        transactions: [
+          { id: "#T0874", item: "Table 1 — 6 items", time: "5 mins ago", amount: "₱1,450" },
+          { id: "#T0873", item: "Takeout — 1 item", time: "11 mins ago", amount: "₱185" },
+          { id: "#T0872", item: "Table 5 — 3 items", time: "19 mins ago", amount: "₱720" },
+          { id: "#T0871", item: "Table 3 — 4 items", time: "28 mins ago", amount: "₱890" }
+        ],
+        peakHours: [8, 20, 35, 55, 75, 90, 85, 60, 65, 85, 70, 40],
+        alerts: [{ icon: "⚠️", text: "Low stock: Bagnet ingredients running low", branch: "Candon" }],
+        weather: { icon: "☁️", temp: "27°C", desc: "Overcast", wind: "8km/h", humidity: "81%" }
+      },
+      2: {
+        orders: 198, customers: 312, avgOrder: 215, goal: 48,
+        topItems: [
+          { name: "Adobo", count: 78 },
+          { name: "Tinola", count: 61 },
+          { name: "Bistek Tagalog", count: 54 },
+          { name: "Bulalo", count: 42 },
+          { name: "Leche Flan", count: 35 }
+        ],
+        staff: [
+          { name: "Nena Castillo", role: "Head Chef", status: "on duty", color: "#f97316" },
+          { name: "Ricky Aquino", role: "Cashier", status: "on break", color: "#3b82f6" },
+          { name: "Gina Morales", role: "Waitstaff", status: "on duty", color: "#10b981" },
+          { name: "Ben Pascual", role: "Waitstaff", status: "on duty", color: "#a855f7" }
+        ],
+        transactions: [
+          { id: "#T0612", item: "Table 2 — 2 items", time: "3 mins ago", amount: "₱540" },
+          { id: "#T0611", item: "Table 6 — 4 items", time: "14 mins ago", amount: "₱980" },
+          { id: "#T0610", item: "Takeout — 3 items", time: "25 mins ago", amount: "₱670" },
+          { id: "#T0609", item: "Table 4 — 5 items", time: "35 mins ago", amount: "₱1,120" }
+        ],
+        peakHours: [5, 15, 30, 50, 70, 80, 75, 50, 60, 78, 65, 35],
+        alerts: [{ icon: "🔴", text: "Low stock: Bulalo ingredients critically low", branch: "Servantes" }],
+        weather: { icon: "🌧", temp: "24°C", desc: "Light Rain", wind: "15km/h", humidity: "89%" }
+      },
+      3: {
+        orders: 142, customers: 218, avgOrder: 197, goal: 35,
+        topItems: [
+          { name: "Pancit Canton", count: 56 },
+          { name: "Arroz Caldo", count: 48 },
+          { name: "Goto", count: 41 },
+          { name: "Tokwa't Baboy", count: 33 },
+          { name: "Turon", count: 27 }
+        ],
+        staff: [
+          { name: "Cora Jimenez", role: "Head Chef", status: "off duty", color: "#f97316" },
+          { name: "Dino Ramos", role: "Cashier", status: "off duty", color: "#3b82f6" },
+          { name: "Lily Ocampo", role: "Waitstaff", status: "off duty", color: "#10b981" },
+          { name: "Fred Navarro", role: "Waitstaff", status: "off duty", color: "#a855f7" }
+        ],
+        transactions: [
+          { id: "#T0321", item: "Table 1 — 2 items", time: "2 hrs ago", amount: "₱390" },
+          { id: "#T0320", item: "Takeout — 1 item", time: "2 hrs ago", amount: "₱145" },
+          { id: "#T0319", item: "Table 3 — 3 items", time: "3 hrs ago", amount: "₱580" },
+          { id: "#T0318", item: "Table 2 — 4 items", time: "3 hrs ago", amount: "₱840" }
+        ],
+        peakHours: [3, 8, 15, 30, 45, 55, 50, 35, 40, 52, 45, 25],
+        alerts: [{ icon: "🔴", text: "Branch is currently CLOSED", branch: "Suyo" }],
+        weather: { icon: "🌥", temp: "26°C", desc: "Mostly Cloudy", wind: "10km/h", humidity: "78%" }
+      }
+    };
+
+    let activeBranch = 0;
+    let activeTab = "weekly";
+    let revenueChart = null;
+    let peakChart = null;
+    let allBranchChart = null;
+
+    // ── RENDER ──
+    function render() {
+      document.getElementById("mainContent").innerHTML = buildHTML();
+      document.getElementById("mainContent").classList.add("fade-in");
+      setTimeout(() => {
+        buildRevenueChart();
+        buildPeakChart();
+        buildAllBranchChart();
+        animateGoals();
+      }, 50);
+    }
+
+    function buildHTML() {
+      const d = branchDetails[activeBranch];
+      const b = branches[activeBranch];
+      const totalRevenue = Object.keys(branchDetails).reduce((s, k) => s + weeklyData[k].reduce((a, v) => a + v, 0), 0);
+      const totalOrders = Object.keys(branchDetails).reduce((s, k) => s + branchDetails[k].orders, 0);
+      const totalCustomers = Object.keys(branchDetails).reduce((s, k) => s + branchDetails[k].customers, 0);
+      const todayRevenue = weeklyData[activeBranch][6];
+
+      return `
+        <!-- WEATHER -->
+        <div class="weather-card">
+          <div class="weather-icon">${d.weather.icon}</div>
+          <div>
+            <div class="weather-loc">📍 ${b.name}, Ilocos Sur</div>
+            <div class="weather-temp">${d.weather.temp}</div>
+            <div class="weather-desc">${d.weather.desc}</div>
+          </div>
+          <div class="weather-extra">
+            <div class="weather-extra-item">
+              <div class="weather-extra-val">💨 ${d.weather.wind}</div>
+              <div class="weather-extra-label">Wind</div>
+            </div>
+            <div class="weather-extra-item">
+              <div class="weather-extra-val">💧 ${d.weather.humidity}</div>
+              <div class="weather-extra-label">Humidity</div>
+            </div>
+            <div class="weather-extra-item">
+              <div class="weather-extra-val">${d.orders}</div>
+              <div class="weather-extra-label">Orders Today</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BRANCH CARDS -->
+        <div class="section-title">Branch Overview</div>
+        <div class="branches-grid">
+          ${branches.map((br, i) => {
+            const rev = weeklyData[i][6];
+            const prevRev = weeklyData[i][5];
+            const change = (((rev - prevRev) / prevRev) * 100).toFixed(1);
+            const isUp = change >= 0;
+            return `
+            <div class="branch-card b${i} ${activeBranch === i ? 'active' : ''}" onclick="switchBranch(${i})">
+              <div class="branch-name">${br.name}</div>
+              <div class="branch-location">📍 ${br.region}</div>
+              <div class="branch-status status-${br.status}" id="status-label-${i}">
+                <span class="status-dot"></span>
+                ${br.status.charAt(0).toUpperCase() + br.status.slice(1)}
+              </div>
+              <div class="branch-revenue" style="color:${br.color}">₱${rev.toLocaleString()}</div>
+              <div class="branch-revenue-label">Today's Revenue</div>
+              <div class="branch-change ${isUp ? 'up' : 'down'}">${isUp ? '▲' : '▼'} ${Math.abs(change)}% vs yesterday</div>
+              <div class="status-controls">
+                <button class="status-btn s-open ${br.status==='open'?'active-s':''}" onclick="setStatus(event,${i},'open')">Open</button>
+                <button class="status-btn s-busy ${br.status==='busy'?'active-s':''}" onclick="setStatus(event,${i},'busy')">Busy</button>
+                <button class="status-btn s-closed ${br.status==='closed'?'active-s':''}" onclick="setStatus(event,${i},'closed')">Closed</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+
+        <!-- QUICK METRICS -->
+        <div class="section-title">Quick Summary — All Branches</div>
+        <div class="comparison-row">
+          <div class="metric-card">
+            <div class="metric-label">Total Revenue (Week)</div>
+            <div class="metric-value" style="color:var(--accent)">₱${(totalRevenue/1000).toFixed(0)}K</div>
+            <div class="metric-sub">Across all 4 branches</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Orders Today</div>
+            <div class="metric-value" style="color:var(--accent2)">${totalOrders}</div>
+            <div class="metric-sub">All branches combined</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Customers Today</div>
+            <div class="metric-value" style="color:var(--accent3)">${totalCustomers}</div>
+            <div class="metric-sub">Walk-ins + takeout</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Avg Order Value</div>
+            <div class="metric-value" style="color:var(--accent4)">₱${d.avgOrder}</div>
+            <div class="metric-sub">${b.name} branch</div>
+          </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="detail-header">
+          <div>
+            <div class="section-title">Branch Analysis</div>
+            <div class="detail-title">${b.name} Branch <span class="branch-badge b${activeBranch}-badge">Active</span></div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Revenue Trend</div>
+              <div class="chart-tabs">
+                <button class="chart-tab ${activeTab==='weekly'?'active':''}" onclick="switchTab('weekly')">Weekly</button>
+                <button class="chart-tab ${activeTab==='monthly'?'active':''}" onclick="switchTab('monthly')">Monthly</button>
+              </div>
+            </div>
+            <canvas id="revenueChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">All Branches Comparison</div>
+            </div>
+            <canvas id="allBranchChart"></canvas>
+          </div>
+        </div>
+
+        <!-- BOTTOM ROW -->
+        <div class="bottom-row">
+          <!-- TOP SELLING -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">🏆 Top Selling Items</div>
+              <div style="font-size:11px;color:var(--muted)">${b.name}</div>
+            </div>
+            ${d.topItems.map((item, i) => `
+              <div class="item-row">
+                <div class="item-rank">#${i+1}</div>
+                <div class="item-name">${item.name}</div>
+                <div class="item-bar-wrap"><div class="item-bar" style="width:${(item.count/d.topItems[0].count)*100}%;background:${b.color}"></div></div>
+                <div class="item-count">${item.count}</div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- STAFF -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">👥 Staff on Duty</div>
+              <div style="font-size:11px;color:var(--muted)">${b.name}</div>
+            </div>
+            ${d.staff.map(s => `
+              <div class="staff-row">
+                <div class="staff-avatar" style="background:${s.color}22;color:${s.color}">${s.name.split(' ').map(n=>n[0]).join('')}</div>
+                <div class="staff-info">
+                  <div class="staff-name">${s.name}</div>
+                  <div class="staff-role">${s.role}</div>
+                </div>
+                <div class="staff-status" style="color:${s.status==='on duty'?'var(--open)':s.status==='on break'?'var(--busy)':'var(--muted)'}">
+                  ${s.status==='on duty'?'● On Duty':s.status==='on break'?'● On Break':'○ Off'}
+                </div>
+              </div>
+            `).join('')}
+            <div class="divider"></div>
+            <div style="font-size:12px;color:var(--muted)">Customers Today</div>
+            <div style="margin-top:10px">
+              ${branches.map((br, i) => `
+                <div class="customers-bar">
+                  <div class="customers-bar-label">${br.name}</div>
+                  <div class="customers-bar-track"><div class="customers-bar-fill" style="width:${(branchDetails[i].customers/totalCustomers)*100}%;background:${br.color}"></div></div>
+                  <div class="customers-bar-val" style="color:${br.color}">${branchDetails[i].customers}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <!-- RECENT TRANSACTIONS -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">🧾 Recent Transactions</div>
+                <div style="font-size:11px;color:var(--muted)">${b.name}</div>
+              </div>
+              ${d.transactions.map(t => `
+                <div class="txn-row">
+                  <div>
+                    <div class="txn-item">${t.item}</div>
+                    <div style="display:flex;gap:8px;margin-top:2px">
+                      <span class="txn-id">${t.id}</span>
+                      <span class="txn-time">${t.time}</span>
+                    </div>
+                  </div>
+                  <div class="txn-amount">${t.amount}</div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- ALERTS -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">🔔 Alerts</div>
+              </div>
+              ${getAllAlerts().length === 0
+                ? '<div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">No active alerts ✓</div>'
+                : getAllAlerts().map(a => `
+                  <div class="alert-row">
+                    <div class="alert-icon">${a.icon}</div>
+                    <div class="alert-text">${a.text}</div>
+                    <div class="alert-branch">${a.branch}</div>
+                  </div>
+                `).join('')
+              }
+            </div>
+
+            <!-- GOAL PROGRESS -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">🎯 Monthly Revenue Goals</div>
+              </div>
+              ${branches.map((br, i) => `
+                <div class="goal-label">
+                  <span style="font-size:12px">${br.name}</span>
+                  <span style="font-size:12px;color:${br.color}">${branchDetails[i].goal}%</span>
+                </div>
+                <div class="goal-bar">
+                  <div class="goal-fill" id="goal-${i}" style="width:0%;background:${br.color}"></div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- PEAK HOURS -->
+        <div class="chart-card" style="margin-bottom:24px">
+          <div class="chart-header">
+            <div class="chart-title">⏰ Peak Hours — ${b.name}</div>
+            <div style="font-size:11px;color:var(--muted)">Customer traffic by hour</div>
+          </div>
+          <canvas id="peakChart"></canvas>
+        </div>
+      `;
+    }
+
+    function getAllAlerts() {
+      let all = [];
+      Object.values(branchDetails).forEach(d => { if (d.alerts) all = all.concat(d.alerts); });
+      return all;
+    }
+
+    function switchBranch(id) {
+      activeBranch = id;
+      render();
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      render();
+    }
+
+    function setStatus(e, id, status) {
+      e.stopPropagation();
+      branches[id].status = status;
+      render();
+    }
+
+    function buildRevenueChart() {
+      const ctx = document.getElementById("revenueChart");
+      if (!ctx) return;
+      const isWeekly = activeTab === "weekly";
+      const data = isWeekly ? weeklyData[activeBranch] : monthlyData[activeBranch];
+      const labels = isWeekly
+        ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        : ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+      const color = branches[activeBranch].color;
+
+      if (revenueChart) revenueChart.destroy();
+      revenueChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Revenue",
+            data,
+            borderColor: color,
+            backgroundColor: color + "22",
+            borderWidth: 2,
+            pointBackgroundColor: color,
+            pointRadius: 4,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#64748b" } },
+            y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#64748b", callback: v => "₱" + (v/1000).toFixed(0) + "K" } }
+          }
+        }
+      });
+    }
+
+    function buildAllBranchChart() {
+      const ctx = document.getElementById("allBranchChart");
+      if (!ctx) return;
+      if (allBranchChart) allBranchChart.destroy();
+
+      allBranchChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: branches.map(b => b.name),
+          datasets: [{
+            label: "Weekly Revenue",
+            data: branches.map((b, i) => weeklyData[i].reduce((a, v) => a + v, 0)),
+            backgroundColor: branches.map(b => b.color + "99"),
+            borderColor: branches.map(b => b.color),
+            borderWidth: 2,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#64748b" } },
+            y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#64748b", callback: v => "₱" + (v/1000).toFixed(0) + "K" } }
+          }
+        }
+      });
+    }
+
+    function buildPeakChart() {
+      const ctx = document.getElementById("peakChart");
+      if (!ctx) return;
+      const color = branches[activeBranch].color;
+      const d = branchDetails[activeBranch];
+
+      if (peakChart) peakChart.destroy();
+      peakChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["8AM","9AM","10AM","11AM","12PM","1PM","2PM","3PM","4PM","5PM","6PM","7PM"],
+          datasets: [{
+            label: "Customers",
+            data: d.peakHours,
+            backgroundColor: d.peakHours.map(v => v >= 80 ? color : color + "66"),
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#64748b" } },
+            y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#64748b" } }
+          }
+        }
+      });
+    }
+
+    function animateGoals() {
+      branches.forEach((br, i) => {
+        const el = document.getElementById("goal-" + i);
+        if (el) setTimeout(() => { el.style.width = branchDetails[i].goal + "%"; }, 100 * i);
+      });
+    }
+
+    render();
+</script>
+</body>
+</html>

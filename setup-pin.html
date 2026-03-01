@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Up PIN</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="pin-container">
+    <h2>Set Your PIN</h2>
+    <p>Choose a 4-digit PIN to access the app next time</p>
+
+    <div class="pin-dots">
+        <span class="dot" id="d1"></span>
+        <span class="dot" id="d2"></span>
+        <span class="dot" id="d3"></span>
+        <span class="dot" id="d4"></span>
+    </div>
+
+    <p id="pin-error">PINs do not match. Try again.</p>
+    <p id="pin-step">Step 1: Enter your new PIN</p>
+
+    <div class="numpad">
+        <button onclick="enterDigit('1')">1</button>
+        <button onclick="enterDigit('2')">2</button>
+        <button onclick="enterDigit('3')">3</button>
+        <button onclick="enterDigit('4')">4</button>
+        <button onclick="enterDigit('5')">5</button>
+        <button onclick="enterDigit('6')">6</button>
+        <button onclick="enterDigit('7')">7</button>
+        <button onclick="enterDigit('8')">8</button>
+        <button onclick="enterDigit('9')">9</button>
+        <button onclick="clearPin()" class="clear-btn">⌫</button>
+        <button onclick="enterDigit('0')">0</button>
+        <button onclick="submitPin()" class="ok-btn">OK</button>
+    </div>
+</div>
+
+<script>
+    if (localStorage.getItem("isLoggedIn") !== "true") {
+  window.location.href = "index.html";
+}
+
+let currentPin = "";
+let firstPin = "";
+let step = 1;
+
+function enterDigit(digit) {
+  if (currentPin.length < 4) {
+    currentPin += digit;
+    updateDots();
+  }
+}
+
+function clearPin() {
+  currentPin = currentPin.slice(0, -1);
+  updateDots();
+}
+
+function updateDots() {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById("d" + i);
+    dot.classList.toggle("filled", i <= currentPin.length);
+  }
+}
+
+function submitPin() {
+  if (currentPin.length < 4) return;
+
+  if (step === 1) {
+    firstPin = currentPin;
+    currentPin = "";
+    updateDots();
+    step = 2;
+    document.getElementById("pin-step").textContent = "Step 2: Confirm your PIN";
+  } else {
+    if (currentPin === firstPin) {
+      localStorage.setItem("managerPin", currentPin);
+      localStorage.setItem("pinVerified", "true"); // ← marks session as active
+      window.location.href = "dashboard.html";
+    } else {
+      document.getElementById("pin-error").style.display = "block";
+      currentPin = "";
+      firstPin = "";
+      step = 1;
+      updateDots();
+      document.getElementById("pin-step").textContent = "Step 1: Enter your new PIN";
+      setTimeout(() => {
+        document.getElementById("pin-error").style.display = "none";
+      }, 2000);
+    }
+  }
+}
+</script>
+
+</body>
+</html>

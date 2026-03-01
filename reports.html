@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:rgba(255,255,255,0.07);--accent:#f97316;--accent2:#3b82f6;--accent3:#10b981;--accent4:#a855f7;--text:#f1f5f9;--muted:#64748b;--open:#10b981;--busy:#f59e0b;--closed:#ef4444}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+        .page{padding:20px 20px 80px;max-width:1200px;margin:0 auto}
+        .section-title{font-family:system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+        .card-title{font-family:system-ui,sans-serif;font-size:14px;font-weight:700;margin-bottom:16px}
+        .btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-family:system-ui,sans-serif;font-size:13px;font-weight:500;transition:all 0.2s}
+        .btn-primary{background:var(--accent);color:white}.btn-primary:hover{background:#ea6c0a}
+        .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+        .btn-danger{background:rgba(239,68,68,0.15);color:var(--closed);border:1px solid rgba(239,68,68,0.3)}
+        .btn-success{background:rgba(16,185,129,0.15);color:var(--open);border:1px solid rgba(16,185,129,0.3)}
+        .btn-warn{background:rgba(245,158,11,0.15);color:var(--busy);border:1px solid rgba(245,158,11,0.3)}
+        .input{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:system-ui,sans-serif;font-size:13px;outline:none}
+        .input:focus{border-color:var(--accent)}
+        select.input{cursor:pointer}
+        .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+        .tag-open,.tag-confirmed,.tag-active,.tag-instock{background:rgba(16,185,129,0.15);color:var(--open)}
+        .tag-busy,.tag-pending,.tag-low{background:rgba(245,158,11,0.15);color:var(--busy)}
+        .tag-closed,.tag-cancelled,.tag-outofstock{background:rgba(239,68,68,0.15);color:var(--closed)}
+        .tag-info{background:rgba(59,130,246,0.15);color:var(--accent2)}
+        table{width:100%;border-collapse:collapse}
+        th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+        td{padding:12px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+        tr:last-child td{border-bottom:none}
+        tr:hover td{background:rgba(255,255,255,0.02)}
+        .stat-val{font-family:system-ui,sans-serif;font-size:24px;font-weight:800}
+        .stat-label{font-size:11px;color:var(--muted);margin-top:4px}
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+        .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+        .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;align-items:center;justify-content:center}
+        .modal-bg.open{display:flex}
+        .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:90%;max-width:440px;max-height:90vh;overflow-y:auto}
+        .modal-title{font-family:system-ui,sans-serif;font-size:16px;font-weight:700;margin-bottom:16px}
+        .form-group{margin-bottom:14px}
+        .form-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+        .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+        .topbar{position:sticky;top:0;display:flex;align-items:center;gap:12px;padding:14px 20px;background:#111827;border-bottom:1px solid rgba(255,255,255,0.07);z-index:100}
+        .burger-btn{background:none;border:none;color:#f1f5f9;font-size:20px;cursor:pointer;padding:4px}
+        .topbar-title{font-family:system-ui,sans-serif;font-weight:700;font-size:16px;flex:1}
+        .topbar-right{display:flex;align-items:center;gap:12px}
+        .topbar-clock{font-size:11px;color:#64748b}
+        .notif-badge{position:relative;cursor:pointer;font-size:18px}
+        .badge-count{position:absolute;top:-4px;right:-6px;background:#ef4444;color:white;font-size:9px;font-weight:700;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+        .nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;backdrop-filter:blur(2px)}
+        .nav-overlay.open{display:block}
+        .nav-drawer{position:fixed;top:0;left:0;bottom:0;width:270px;background:#111827;border-right:1px solid rgba(255,255,255,0.07);z-index:300;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto}
+        .nav-drawer.open{transform:translateX(0)}
+        .nav-header{padding:24px 20px 12px;position:relative}
+        .nav-logo{font-family:system-ui,sans-serif;font-weight:800;font-size:18px;color:#f97316}
+        .nav-subtitle{font-size:11px;color:#64748b;margin-top:2px}
+        .nav-email{font-size:11px;color:#94a3b8;padding:0 20px 12px}
+        .nav-close{position:absolute;top:20px;right:16px;background:rgba(255,255,255,0.05);border:none;color:#64748b;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:12px}
+        .nav-divider{height:1px;background:rgba(255,255,255,0.07);margin:4px 0}
+        .nav-links{flex:1;padding:8px 12px}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;color:#94a3b8;font-size:13px;margin-bottom:2px;transition:all 0.15s;text-decoration:none;font-family:system-ui,sans-serif}
+        .nav-item:hover{background:rgba(255,255,255,0.05);color:#f1f5f9}
+        .nav-item.active{background:rgba(249,115,22,0.12);color:#f97316;font-weight:600}
+        .nav-icon{font-size:16px;width:22px;text-align:center}
+        .nav-active-dot{width:6px;height:6px;background:#f97316;border-radius:50%;margin-left:auto}
+        .nav-logout{padding:12px 20px;color:#ef4444!important}
+        .nav-logout:hover{background:rgba(239,68,68,0.1)!important}
+        .fade-in{animation:fadeIn 0.3s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @media(max-width:768px){.grid-3,.grid-4{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+
+<div class="nav-overlay" id="navOverlay" onclick="closeNav()"></div>
+<div class="nav-drawer" id="navDrawer">
+    <div class="nav-header">
+        <div class="nav-logo">🍽 RestaurantOS</div>
+        <div class="nav-subtitle">Admin Panel</div>
+        <button class="nav-close" onclick="closeNav()">✕</button>
+    </div>
+    <div class="nav-email" id="navEmail"></div>
+    <div class="nav-divider"></div>
+    <nav class="nav-links" id="navLinks"></nav>
+    <div class="nav-divider"></div>
+    <div class="nav-item nav-logout" onclick="logout()"><span class="nav-icon">🚪</span><span>Logout</span></div>
+</div>
+
+
+<div class="topbar">
+    <button class="burger-btn" onclick="openNav()">☰</button>
+    <div class="topbar-title">Reports & Analytics</div>
+    <div class="topbar-right">
+        <span class="topbar-clock" id="topClock"></span>
+        <span class="notif-badge" onclick="navigate('notifications.html')">🔔<span class="badge-count">3</span></span>
+    </div>
+</div>
+<div class="page fade-in">
+
+    <div class="grid-4">
+        <div class="card" style="text-align:center"><div class="stat-val" style="color:var(--accent)">₱1.84M</div><div class="stat-label">Monthly Revenue</div></div>
+        <div class="card" style="text-align:center"><div class="stat-val" style="color:var(--open)">+12.4%</div><div class="stat-label">vs Last Month</div></div>
+        <div class="card" style="text-align:center"><div class="stat-val" style="color:var(--accent2)">3,452</div><div class="stat-label">Total Orders</div></div>
+        <div class="card" style="text-align:center"><div class="stat-val" style="color:var(--accent4)">₱533</div><div class="stat-label">Avg Order Value</div></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+        <div class="card">
+            <div class="card-title">Revenue by Branch (Monthly)</div>
+            <canvas id="branchRevChart" style="max-height:220px"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-title">Revenue Trend (6 Months)</div>
+            <canvas id="trendChart" style="max-height:220px"></canvas>
+        </div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+        <div class="card">
+            <div class="card-title">Orders by Branch</div>
+            <canvas id="ordersChart" style="max-height:200px"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-title">Payment Methods</div>
+            <canvas id="paymentChart" style="max-height:200px"></canvas>
+        </div>
+    </div>
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+            <div class="card-title" style="margin:0">Branch Performance Summary</div>
+            <button class="btn btn-secondary" onclick="alert('Export feature coming soon!')">📥 Export Report</button>
+        </div>
+        <div style="overflow-x:auto">
+            <table>
+                <thead><tr><th>Branch</th><th>Revenue</th><th>Orders</th><th>Customers</th><th>Avg Order</th><th>Top Item</th><th>Goal %</th></tr></thead>
+                <tbody>
+                <tr><td><strong>Tagudin</strong></td><td style="font-family:system-ui,sans-serif;font-weight:700;color:#f97316">₱510,000</td><td>1,240</td><td>1,820</td><td>₱411</td><td>Crispy Pata</td><td><span class="tag tag-open">75%</span></td></tr>
+                <tr><td><strong>Candon</strong></td><td style="font-family:system-ui,sans-serif;font-weight:700;color:#3b82f6">₱420,000</td><td>980</td><td>1,450</td><td>₱429</td><td>Bagnet</td><td><span class="tag tag-open">62%</span></td></tr>
+                <tr><td><strong>Servantes</strong></td><td style="font-family:system-ui,sans-serif;font-weight:700;color:#10b981">₱355,000</td><td>820</td><td>1,200</td><td>₱433</td><td>Adobo</td><td><span class="tag tag-busy">48%</span></td></tr>
+                <tr><td><strong>Suyo</strong></td><td style="font-family:system-ui,sans-serif;font-weight:700;color:#a855f7">₱240,000</td><td>412</td><td>620</td><td>₱583</td><td>Pancit Canton</td><td><span class="tag tag-busy">35%</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+<script>
+    if(localStorage.getItem('isLoggedIn')!=='true')window.location.href='index.html';
+    if(sessionStorage.getItem('pinVerified')!=='true')window.location.href='pin-login.html';
+    const PAGE_ID='reports';
+
+    const NAV=[
+      {id:'dashboard',icon:'🏠',label:'Dashboard',file:'dashboard.html'},
+      {id:'reservations',icon:'📅',label:'Reservations',file:'reservations.html'},
+      {id:'menu',icon:'🍽',label:'Menu Management',file:'menu.html'},
+      {id:'inventory',icon:'📦',label:'Inventory',file:'inventory.html'},
+      {id:'staff',icon:'👥',label:'Staff Management',file:'staff.html'},
+      {id:'billing',icon:'💰',label:'Billing & Payments',file:'billing.html'},
+      {id:'events',icon:'🗓',label:'Event Scheduler',file:'events.html'},
+      {id:'reports',icon:'📊',label:'Reports & Analytics',file:'reports.html'},
+      {id:'feedback',icon:'⭐',label:'Customer Feedback',file:'feedback.html'},
+      {id:'notifications',icon:'🔔',label:'Notifications',file:'notifications.html'},
+      {id:'settings',icon:'⚙️',label:'Settings',file:'settings.html'},
+    ];
+    document.getElementById('navEmail').textContent=localStorage.getItem('managerEmail')||'';
+    document.getElementById('navLinks').innerHTML=NAV.map(n=>`<div class="nav-item ${n.id===PAGE_ID?'active':''}" onclick="navigate('${n.file}')"><span class="nav-icon">${n.icon}</span><span>${n.label}</span>${n.id===PAGE_ID?'<span class="nav-active-dot"></span>':''}</div>`).join('');
+    function openNav(){document.getElementById('navDrawer').classList.add('open');document.getElementById('navOverlay').classList.add('open')}
+    function closeNav(){document.getElementById('navDrawer').classList.remove('open');document.getElementById('navOverlay').classList.remove('open')}
+    function navigate(f){window.location.href=f}
+    function logout(){sessionStorage.clear();window.location.href='pin-login.html'}
+    (function tick(){const el=document.getElementById('topClock');if(el)el.textContent=new Date().toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});setTimeout(tick,1000)})();
+
+
+    window.addEventListener('load',()=>{
+      new Chart(document.getElementById('branchRevChart'),{type:'bar',data:{labels:['Tagudin','Candon','Servantes','Suyo'],datasets:[{data:[510000,420000,355000,240000],backgroundColor:['#f9731699','#3b82f699','#10b98199','#a855f799'],borderColor:['#f97316','#3b82f6','#10b981','#a855f7'],borderWidth:2,borderRadius:8}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',callback:v=>'₱'+(v/1000).toFixed(0)+'K'}}}}});
+      new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:['Sep','Oct','Nov','Dec','Jan','Feb'],datasets:[{label:'Tagudin',data:[380000,420000,450000,490000,470000,510000],borderColor:'#f97316',tension:0.4,borderWidth:2,pointRadius:3},{label:'Candon',data:[310000,340000,370000,395000,400000,420000],borderColor:'#3b82f6',tension:0.4,borderWidth:2,pointRadius:3},{label:'Servantes',data:[250000,270000,305000,330000,340000,355000],borderColor:'#10b981',tension:0.4,borderWidth:2,pointRadius:3},{label:'Suyo',data:[170000,185000,195000,220000,230000,240000],borderColor:'#a855f7',tension:0.4,borderWidth:2,pointRadius:3}]},options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',callback:v=>'₱'+(v/1000).toFixed(0)+'K'}}}}});
+      new Chart(document.getElementById('ordersChart'),{type:'doughnut',data:{labels:['Tagudin','Candon','Servantes','Suyo'],datasets:[{data:[1240,980,820,412],backgroundColor:['#f9731666','#3b82f666','#10b98166','#a855f766'],borderColor:['#f97316','#3b82f6','#10b981','#a855f7'],borderWidth:2}]},options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}}}});
+      new Chart(document.getElementById('paymentChart'),{type:'pie',data:{labels:['Cash','GCash','Credit Card','Maya'],datasets:[{data:[45,32,15,8],backgroundColor:['#f9731666','#10b98166','#3b82f666','#a855f766'],borderColor:['#f97316','#10b981','#3b82f6','#a855f7'],borderWidth:2}]},options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}}}});
+    });
+
+</script>
+</body>
+</html>

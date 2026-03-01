@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter PIN</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="pin-container">
+    <div class="app-logo">🏢</div>
+    <h2>Welcome Back</h2>
+    <p id="manager-email"></p>
+    <p>Enter your 4-digit PIN</p>
+
+    <div class="pin-dots">
+        <span class="dot" id="d1"></span>
+        <span class="dot" id="d2"></span>
+        <span class="dot" id="d3"></span>
+        <span class="dot" id="d4"></span>
+    </div>
+
+    <p id="pin-error">Incorrect PIN. Try again.</p>
+
+    <div class="numpad">
+        <button onclick="enterDigit('1')">1</button>
+        <button onclick="enterDigit('2')">2</button>
+        <button onclick="enterDigit('3')">3</button>
+        <button onclick="enterDigit('4')">4</button>
+        <button onclick="enterDigit('5')">5</button>
+        <button onclick="enterDigit('6')">6</button>
+        <button onclick="enterDigit('7')">7</button>
+        <button onclick="enterDigit('8')">8</button>
+        <button onclick="enterDigit('9')">9</button>
+        <button onclick="clearPin()" class="clear-btn">⌫</button>
+        <button onclick="enterDigit('0')">0</button>
+        <button onclick="submitPin()" class="ok-btn">OK</button>
+    </div>
+
+    <button class="forgot-btn" onclick="showForgotModal()">Forgot PIN?</button>
+</div>
+
+<!-- Forgot PIN Modal -->
+<div id="forgot-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Reset PIN</h3>
+        <p>You will need to verify your Gmail again to reset your PIN. Do you want to continue?</p>
+        <div class="modal-buttons">
+            <button class="modal-cancel" onclick="hideForgotModal()">Cancel</button>
+            <button class="modal-confirm" onclick="resetPin()">Yes, Reset</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    if (localStorage.getItem("isLoggedIn") !== "true") {
+      window.location.href = "index.html";
+    }
+
+    if (sessionStorage.getItem("pinVerified") === "true") {
+      window.location.href = "dashboard.html";
+    }
+
+    const email = localStorage.getItem("managerEmail");
+    if (email) {
+      document.getElementById("manager-email").textContent = email;
+    }
+
+    let currentPin = "";
+
+    function enterDigit(digit) {
+      if (currentPin.length < 4) {
+        currentPin += digit;
+        updateDots();
+      }
+    }
+
+    function clearPin() {
+      currentPin = currentPin.slice(0, -1);
+      updateDots();
+    }
+
+    function updateDots() {
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById("d" + i);
+        dot.classList.toggle("filled", i <= currentPin.length);
+      }
+    }
+
+    function submitPin() {
+      if (currentPin.length < 4) return;
+
+      const savedPin = localStorage.getItem("managerPin");
+      if (currentPin === savedPin) {
+        sessionStorage.setItem("pinVerified", "true");
+        window.location.href = "dashboard.html";
+      } else {
+        document.getElementById("pin-error").style.display = "block";
+        currentPin = "";
+        updateDots();
+        setTimeout(() => {
+          document.getElementById("pin-error").style.display = "none";
+        }, 2000);
+      }
+    }
+
+    function showForgotModal() {
+      document.getElementById("forgot-modal").style.display = "flex";
+    }
+
+    function hideForgotModal() {
+      document.getElementById("forgot-modal").style.display = "none";
+    }
+
+    function resetPin() {
+      localStorage.removeItem("managerPin");
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("managerEmail");
+      localStorage.setItem("resetPin", "true");
+      sessionStorage.clear();
+      window.location.href = "index.html";
+    }
+</script>
+
+</body>
+</html>

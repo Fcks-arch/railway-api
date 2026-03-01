@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="login-container">
+    <div class="app-logo">🏢</div>
+    <h2>Management System</h2>
+    <p>Manager Access Only</p>
+
+    <div id="gmail-section">
+        <input type="email" id="gmail-input" placeholder="Enter your Gmail address" />
+        <button class="gmail-btn" onclick="signInWithGmail()">
+            Sign in with Gmail
+        </button>
+    </div>
+
+    <p id="error-msg">Access denied. Only the authorized manager can sign in.</p>
+</div>
+
+<script>
+    const managerEmail = "johnpaulbarbado398@gmail.com"; // ← keep your actual Gmail here
+
+const isLoggedIn = localStorage.getItem("isLoggedIn");
+const pinSet = localStorage.getItem("managerPin");
+const resetPin = localStorage.getItem("resetPin"); // ← checks if reset was triggered
+
+// Only skip to PIN login if logged in, PIN exists, and NOT resetting
+if (isLoggedIn === "true" && pinSet && resetPin !== "true") {
+  window.location.href = "pin-login.html";
+}
+
+function signInWithGmail() {
+  const inputEmail = document.getElementById("gmail-input").value.trim().toLowerCase();
+  const errorMsg = document.getElementById("error-msg");
+
+  if (inputEmail === "") {
+    errorMsg.textContent = "Please enter your Gmail address.";
+    errorMsg.style.display = "block";
+    return;
+  }
+
+  if (inputEmail === managerEmail.toLowerCase()) {
+    localStorage.setItem("managerEmail", inputEmail);
+    localStorage.setItem("isLoggedIn", "true");
+    localStorage.removeItem("resetPin"); // ← clear reset flag
+
+    const pinSet = localStorage.getItem("managerPin");
+    if (pinSet) {
+      window.location.href = "pin-login.html";
+    } else {
+      window.location.href = "setup-pin.html";
+    }
+  } else {
+    errorMsg.textContent = "Access denied. Only the authorized manager can sign in.";
+    errorMsg.style.display = "block";
+  }
+}
+</script>
+
+</body>
+</html>
