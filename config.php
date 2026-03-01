@@ -1,7 +1,8 @@
 <?php
-// ── RAILWAY DATABASE CONFIG ──
-define('DB_HOST', getenv('MYSQLHOST') ?: 'maglev.proxy.rlwy.net');
-define('DB_PORT', getenv('MYSQLPORT') ?: '28397');
+// Use Railway internal variables (set via Variable References)
+// Falls back to hardcoded values if env vars not set
+define('DB_HOST', getenv('MYSQLHOST') ?: 'mysql.railway.internal');
+define('DB_PORT', getenv('MYSQLPORT') ?: '3306');
 define('DB_USER', getenv('MYSQLUSER') ?: 'root');
 define('DB_PASS', getenv('MYSQLPASSWORD') ?: 'CTcegQuMqhmYOxwkjZpipMTsmKpIDDnh');
 define('DB_NAME', getenv('MYSQLDATABASE') ?: 'railway');
@@ -20,7 +21,7 @@ function getDB() {
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, (int)DB_PORT);
     if ($conn->connect_error) {
         http_response_code(500);
-        echo json_encode(['error' => 'Connection failed: ' . $conn->connect_error]);
+        echo json_encode(['error' => 'DB Error: ' . $conn->connect_error]);
         exit();
     }
     $conn->set_charset('utf8');
