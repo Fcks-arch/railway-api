@@ -322,6 +322,15 @@ var NAV=[
   {id:'notifications',icon:'🔔',label:'Notifications',      file:'notifications.html'},
   {id:'settings',    icon:'⚙️',label:'Settings',            file:'settings.html'},
 ];
+
+// Fixed navigation builder
+var nh='';
+for(var i=0;i<NAV.length;i++){
+  var n=NAV[i];
+  var a=n.id==='settings';
+  nh+='<div class="nav-item'+(a?' active':'')+'" onclick="go(\''+n.file+'\')"><span class="nav-icon">'+n.icon+'</span><span>'+n.label+'</span>'+(a?'<span class="nav-active-dot"></span>':'')+'</div>';
+}
+document.getElementById('navLinks').innerHTML=nh;
 document.getElementById('navEmail').textContent=localStorage.getItem('managerEmail')||'';
 var nh='';
 for(var i=0;i<NAV.length;i++){
