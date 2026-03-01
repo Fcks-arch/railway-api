@@ -1,4 +1,8 @@
 <?php
+require_once 'cors.php';
+require_once 'config.php';
+// ... rest of your code
+
 require_once 'config.php';
 $db = getDB();
 $method = $_SERVER['REQUEST_METHOD'];
