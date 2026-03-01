@@ -243,14 +243,7 @@ tr:hover td{background:rgba(212,168,83,0.03);color:var(--text)}
       <div class="api-label">Connection Status</div>
       <div id="connStatus" style="font-size:13px;color:var(--muted)">Checking...</div>
     </div>
-    <div class="form-label">Device Type</div>
-    <select class="input" id="deviceType" onchange="switchDevice()" style="margin-bottom:14px">
-      <option value="phone">Real Phone (WiFi)</option>
-      <option value="emulator">Emulator</option>
-    </select>
-    <div class="form-label">Your PC's WiFi IP Address</div>
-    <input class="input" id="phoneIP" placeholder="e.g. 192.168.8.42">
-    <button class="btn btn-primary" onclick="saveIP()">Save &amp; Test Connection</button>
+    <button class="btn btn-primary" onclick="checkConnection()">Test Connection</button>
   </div>
 
   <div class="grid-2">
@@ -347,20 +340,24 @@ function logout(){sessionStorage.clear();window.location.href='pin-login.html'}
 // Fill saved values
 document.getElementById('settEmail').value=localStorage.getItem('managerEmail')||'';
 document.getElementById('settGmail').value=localStorage.getItem('managerEmail')||'';
-document.getElementById('phoneIP').value=savedIP;
-document.getElementById('deviceType').value=USE_EMULATOR?'emulator':'phone';
 
 // Check connection
 function checkConnection(){
   var el=document.getElementById('connStatus');
-  el.innerHTML='<span class="status-dot" style="background:var(--busy)"></span> Connecting to Railway...';
-  apiGet('branches.php').then(function(data){
-    if(data && data.length){
-      el.innerHTML='<span class="status-dot" style="background:var(--open)"></span> ✅ Connected — database is live!';
-      loadBranches();
-    } else {
-      el.innerHTML='<span class="status-dot" style="background:var(--closed)"></span> ❌ Cannot connect. Check XAMPP is running.';
-    }
+  el.innerHTML='<span class="status-dot" style="background:var(--busy)"></span> Connecting...';
+  fetch(API+'branches.php')
+    .then(function(r){return r.json()})
+    .then(function(data){
+      if(data&&data.length){
+        el.innerHTML='<span class="status-dot" style="background:var(--open)"></span> ✅ Connected — database is live!';
+        loadBranches();
+      } else {
+        el.innerHTML='<span class="status-dot" style="background:var(--closed)"></span> ❌ Cannot connect.';
+      }
+    }).catch(function(e){
+      el.innerHTML='<span class="status-dot" style="background:var(--closed)"></span> ❌ Error: '+e.message;
+    });
+}
   });
 }
 
@@ -389,20 +386,11 @@ function updateBranchStatus(id, status){
   });
 }
 
-function switchDevice(){
-  var val=document.getElementById('deviceType').value;
-  USE_EMULATOR=val==='emulator';
-  localStorage.setItem('useEmulator',USE_EMULATOR);
-  API=USE_EMULATOR?EMULATOR_URL:PHONE_URL;
-  checkConnection();
-}
 
-function saveIP(){
-  var ip=document.getElementById('phoneIP').value.trim();
-  if(!ip){alert('Enter an IP address');return;}
+
+
   localStorage.setItem('phoneIP',ip);
-  PHONE_URL='http://'+ip+'/restaurant-api/api/';
-  if(!USE_EMULATOR)API=PHONE_URL;
+    if(!USE_EMULATOR)API=PHONE_URL;
   checkConnection();
 }
 
