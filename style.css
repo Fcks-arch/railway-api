@@ -1,0 +1,309 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* ---- LOGIN PAGE ---- */
+.login-container {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  width: 350px;
+  text-align: center;
+}
+
+.login-container h2 {
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.login-container p {
+  color: #777;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #357abd;
+}
+
+#error-msg {
+  color: red;
+  font-size: 13px;
+  margin-top: 10px;
+  display: none;
+}
+
+/* ---- DASHBOARD PAGE ---- */
+#dashboard-content {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header {
+  background-color: #4a90e2;
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  font-size: 20px;
+}
+
+.logout-btn {
+  background-color: white;
+  color: #4a90e2;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  width: auto;
+}
+
+.logout-btn:hover {
+  background-color: #e8f0fb;
+}
+
+.welcome-box {
+  padding: 40px;
+  text-align: center;
+}
+
+.welcome-box h2 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.welcome-box p {
+  color: #777;
+}
+
+/* ---- GMAIL BUTTON ---- */
+.gmail-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  background-color: white;
+  color: #444;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.gmail-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.app-logo {
+  font-size: 50px;
+  margin-bottom: 10px;
+}
+
+/* ---- PIN PAGE ---- */
+.pin-container {
+  background: white;
+  padding: 40px 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  width: 350px;
+  text-align: center;
+}
+
+.pin-container h2 {
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.pin-container p {
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #4a90e2;
+  background-color: white;
+  transition: background 0.2s;
+}
+
+.dot.filled {
+  background-color: #4a90e2;
+}
+
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.numpad button {
+  padding: 18px;
+  font-size: 20px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  width: auto;
+}
+
+.numpad button:hover {
+  background-color: #f0f4ff;
+}
+
+.clear-btn {
+  background-color: #fff0f0 !important;
+  color: #e74c3c;
+}
+
+.ok-btn {
+  background-color: #4a90e2 !important;
+  color: white;
+}
+
+.forgot-btn {
+  margin-top: 20px;
+  background: none;
+  border: none;
+  color: #4a90e2;
+  font-size: 14px;
+  cursor: pointer;
+  width: auto;
+  padding: 8px;
+}
+
+.forgot-btn:hover {
+  text-decoration: underline;
+}
+
+#pin-error {
+  color: red;
+  font-size: 13px;
+  display: none;
+}
+
+#pin-step {
+  color: #4a90e2;
+  font-weight: bold;
+}
+
+/* ---- MODAL ---- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-box {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 280px;
+  text-align: center;
+}
+
+.modal-box h3 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.modal-box p {
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.modal-cancel {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  color: #555;
+  cursor: pointer;
+  width: auto;
+  font-size: 14px;
+}
+
+.modal-cancel:hover {
+  background: #f5f5f5;
+}
+
+.modal-confirm {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background: #e74c3c;
+  color: white;
+  cursor: pointer;
+  width: auto;
+  font-size: 14px;
+}
+
+.modal-confirm:hover {
+  background: #c0392b;
+}
