@@ -1,9 +1,7 @@
 <?php
-// Suppress all PHP errors from outputting HTML
 error_reporting(0);
 ini_set('display_errors', 0);
 
-// Always output JSON
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -14,20 +12,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Use environment variables set in Railway
-$DB_HOST = getenv('MYSQLHOST') ?: 'maglev.proxy.rlwy.net';
-$DB_PORT = (int)(getenv('MYSQLPORT') ?: '28397');
-$DB_USER = getenv('MYSQLUSER') ?: 'root';
-$DB_PASS = getenv('MYSQLPASSWORD') ?: 'CTcegQuMqhmYOxwkjZpipMTsmKpIDDnh';
-$DB_NAME = getenv('MYSQLDATABASE') ?: 'railway';
-
 function getDB() {
-    global $DB_HOST, $DB_PORT, $DB_USER, $DB_PASS, $DB_NAME;
     mysqli_report(MYSQLI_REPORT_OFF);
-    $conn = @new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME, $DB_PORT);
+    $conn = @new mysqli(
+        'shortline.proxy.rlwy.net',
+        'root',
+        'rEqexMabCkBNXIOIQnMbiPCbCIRtMrjO',
+        'railway',
+        18972
+    );
     if ($conn->connect_error) {
         http_response_code(500);
-        echo json_encode(['error' => $conn->connect_error, 'host' => $DB_HOST, 'port' => $DB_PORT]);
+        echo json_encode(['error' => $conn->connect_error]);
         exit();
     }
     $conn->set_charset('utf8');
